@@ -3,7 +3,7 @@ import localforage from 'localforage';
 import {
   Home, Star, Camera, Briefcase, BarChart2, Grid, Layers, MoreVertical,
   Heart, Bookmark, Play, SkipBack, SkipForward, MapPin, Info, ArrowLeft, Clock, Upload, Bell, Pause,
-  Image as ImageIcon, ListMusic, Disc, Eye
+  Image as ImageIcon, ListMusic, Disc, Eye, Edit3, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -14,6 +14,7 @@ import MainHeader from './components/MainHeader';
 import HomeContent from './components/HomeContent';
 import GalleryContent from './components/GalleryContent';
 import PlaylistContent from './components/PlaylistContent';
+import ProfileEditor from './components/ProfileEditor';
 
 // Hooks
 import { useStorage } from './hooks/useStorage';
@@ -25,6 +26,7 @@ function App() {
   const [progress, setProgress] = useState(0);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   const [profile, setProfile] = useState({
     firstName: "JAZZLYN",
@@ -112,7 +114,7 @@ function App() {
   const sharedIcons = {
     Home, Star, Camera, Briefcase, BarChart2, Grid, Layers, MoreVertical,
     Heart, Bookmark, Play, SkipBack, SkipForward, MapPin, Info, ArrowLeft, Clock, Upload, Bell, Pause,
-    ImageIcon, ListMusic, Disc, Eye
+    ImageIcon, ListMusic, Disc, Eye, Edit3, X
   };
 
   return (
@@ -153,6 +155,7 @@ function App() {
                   incrementStat={incrementStat}
                   stats={stats}
                   onUploadClick={() => imageInputRef.current.click()}
+                  onEditProfile={() => setIsEditingProfile(true)}
                   icons={sharedIcons}
                 />
               )}
@@ -223,6 +226,16 @@ function App() {
           </div>
         </aside>
       </motion.div>
+
+      <AnimatePresence>
+        {isEditingProfile && (
+          <ProfileEditor
+            profile={profile}
+            setProfile={setProfile}
+            onClose={() => setIsEditingProfile(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import React, { useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
-const HomeContent = ({ isCameraActive, heroImage, profile, incrementStat, stats, onUploadClick, icons }) => {
-    const { Upload, Heart, Star, Bookmark } = icons;
+const HomeContent = ({ isCameraActive, heroImage, profile, incrementStat, stats, onUploadClick, onEditProfile, icons }) => {
+    const { Upload, Heart, Star, Bookmark, Edit3 } = icons;
 
     // Referensi untuk elemen video
     const videoRef = useRef(null);
@@ -59,6 +59,16 @@ const HomeContent = ({ isCameraActive, heroImage, profile, incrementStat, stats,
                 <img src={heroImage} alt="Profile" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
             )}
 
+            {/* Edit Profile Button */}
+            <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={onEditProfile}
+                className="absolute top-6 right-6 bg-white/80 backdrop-blur text-slate-800 p-3 rounded-full shadow-sm hover:shadow-md border border-white/50 transition-all z-20 pointer-events-auto"
+            >
+                <Edit3 size={18} />
+            </motion.button>
+
             {/* Overlays */}
             <div className="absolute top-10 left-10 flex flex-col gap-6">
                 <div className="flex flex-col bg-white/80 backdrop-blur p-2 px-4 rounded-xl border border-white/50 w-fit shadow-sm">
@@ -101,7 +111,7 @@ const HomeContent = ({ isCameraActive, heroImage, profile, incrementStat, stats,
                         </div>
                         <div className="w-px h-4 bg-slate-200"></div>
                         <div className="flex flex-col items-center flex-1 cursor-pointer hover:bg-slate-100 rounded-lg py-1 transition-colors" onClick={() => incrementStat('stars')}>
-                            <Star size={12} fill="#ec4899" className="text-pink" />
+                            <Star size={12} fill="#ec4899" strokeWidth={0} className="text-pink" />
                             <span className="text-[9px] font-black text-pink mt-0.5">{stats.stars}</span>
                         </div>
                         <div className="w-px h-4 bg-slate-200"></div>
