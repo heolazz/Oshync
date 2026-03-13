@@ -73,7 +73,7 @@ const PlaylistContent = ({ heroImage, icons, onUploadAudio, playlist, setPlaylis
                             >
                                 <div className="text-sm font-bold text-slate-400 w-6 text-center">{song.active ? <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 1 }} className="w-2 h-2 bg-pink rounded-full mx-auto" /> : idx + 1}</div>
                                 <div className="w-10 h-10 rounded-lg bg-slate-200 overflow-hidden shadow-sm">
-                                    <img src={song.cover || (song.active ? heroImage : "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=100&q=80")} className="w-full h-full object-cover opacity-80" alt="Cover" />
+                                    <img src={song.cover || (song.active ? heroImage : `https://loremflickr.com/100/100/cat?random=${song.id}`)} className="w-full h-full object-cover opacity-80" alt="Cover" />
                                 </div>
                                 <div className="flex-1 flex flex-col">
                                     <span className={`text-sm font-bold ${song.active ? 'text-pink' : 'text-slate-800'} line-clamp-1`}>{song.title}</span>
