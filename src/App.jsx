@@ -20,6 +20,19 @@ import ProfileEditor from './components/ProfileEditor';
 // Hooks
 import { useStorage } from './hooks/useStorage';
 
+const INITIAL_GALLERY = [
+  { id: 1, c: "col-span-2 row-span-2", img: "https://loremflickr.com/800/800/cat?random=1" },
+  { id: 2, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=2" },
+  { id: 3, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=3" },
+  { id: 4, c: "col-span-2 row-span-1", img: "https://loremflickr.com/800/400/cat?random=4" },
+  { id: 5, c: "col-span-1 row-span-2", img: "https://loremflickr.com/400/800/cat?random=5" },
+  { id: 6, c: "col-span-2 row-span-1", img: "https://loremflickr.com/800/400/cat?random=6" },
+  { id: 7, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=7" },
+  { id: 8, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=8" },
+  { id: 9, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=9" },
+  { id: 10, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=10" },
+];
+
 function App() {
   // State Definitions
   const [activeTab, setActiveTab] = useState('home');
@@ -54,6 +67,7 @@ function App() {
     { id: 2, title: "SoundHelix-Song-2", artist: profile.realName, duration: "7:05", source: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", active: false, cover: null },
     { id: 3, title: "SoundHelix-Song-3", artist: profile.realName, duration: "5:44", source: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", active: false, cover: null },
   ]);
+  const [gallery, setGallery] = useState(INITIAL_GALLERY);
   const [stats, setStats] = useState({ likes: 1877, stars: 7523, bookmarks: 3644 });
 
   // Refs
@@ -71,6 +85,7 @@ function App() {
     songTitle, setSongTitle,
     audioCover, setAudioCover,
     playlist, setPlaylist,
+    gallery, setGallery,
     setAudioSource
   });
 
@@ -266,7 +281,14 @@ function App() {
                   icons={sharedIcons}
                 />
               )}
-              {activeTab === 'gallery' && <GalleryContent icons={sharedIcons} />}
+              {activeTab === 'gallery' && (
+                <GalleryContent
+                  icons={sharedIcons}
+                  gallery={gallery}
+                  setGallery={setGallery}
+                  onReset={() => setGallery(INITIAL_GALLERY)}
+                />
+              )}
               {activeTab === 'playlist' && (
                 <PlaylistContent
                   heroImage={audioCover || heroImage}
