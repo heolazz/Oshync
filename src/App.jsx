@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import localforage from 'localforage';
+import jsmediatags from 'jsmediatags/dist/jsmediatags.min.js';
 import {
   Home, Star, Camera, Briefcase, BarChart2, Grid, Layers, MoreVertical,
   Heart, Bookmark, Play, SkipBack, SkipForward, MapPin, Info, ArrowLeft, Clock, Upload, Bell, Pause,
@@ -24,6 +25,8 @@ function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -45,6 +48,12 @@ function App() {
   const [heroImage, setHeroImage] = useState("https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=1200");
   const [audioSource, setAudioSource] = useState("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3");
   const [songTitle, setSongTitle] = useState("SoundHelix-Song-1");
+  const [audioCover, setAudioCover] = useState(null);
+  const [playlist, setPlaylist] = useState([
+    { id: 1, title: "SoundHelix-Song-1", artist: profile.realName, duration: "6:12", source: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", active: true, cover: null },
+    { id: 2, title: "SoundHelix-Song-2", artist: profile.realName, duration: "7:05", source: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", active: false, cover: null },
+    { id: 3, title: "SoundHelix-Song-3", artist: profile.realName, duration: "5:44", source: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", active: false, cover: null },
+  ]);
   const [stats, setStats] = useState({ likes: 1877, stars: 7523, bookmarks: 3644 });
 
   // Refs
@@ -60,6 +69,8 @@ function App() {
     heroImage, setHeroImage,
     stats, setStats,
     songTitle, setSongTitle,
+    audioCover, setAudioCover,
+    playlist, setPlaylist,
     setAudioSource
   });
 
@@ -82,7 +93,25 @@ function App() {
 
   const onTimeUpdate = () => {
     if (audioRef.current && audioRef.current.duration) {
-      setProgress((audioRef.current.currentTime / audioRef.current.duration) * 100);
+      const cur = audioRef.current.currentTime;
+      const dur = audioRef.current.duration;
+      setCurrentTime(cur);
+      setDuration(dur);
+      setProgress((cur / dur) * 100);
+    }
+  };
+
+  const handleSeek = (percentage) => {
+    if (audioRef.current && audioRef.current.duration) {
+      const seekTime = (percentage / 100) * audioRef.current.duration;
+      audioRef.current.currentTime = seekTime;
+      setProgress(percentage);
+    }
+  };
+
+  const onLoadedMetadata = () => {
+    if (audioRef.current) {
+      setDuration(audioRef.current.duration);
     }
   };
 
@@ -95,12 +124,84 @@ function App() {
     }
   };
 
+  const playTrack = (song) => {
+    if (!song.source) return;
+    setAudioSource(song.source);
+    setSongTitle(song.title);
+    setAudioCover(song.cover || null);
+    setPlaylist(prev => prev.map(t => ({ ...t, active: t.id === song.id })));
+    setProgress(0);
+    setCurrentTime(0);
+    setIsPlaying(true);
+    setTimeout(() => {
+      if (audioRef.current) {
+        audioRef.current.play().catch(e => console.log("Playback error:", e));
+      }
+    }, 50);
+  };
+
+  const handleNextTrack = () => {
+    const activeIdx = playlist.findIndex(s => s.active);
+    if (activeIdx !== -1 && activeIdx < playlist.length - 1) {
+      playTrack(playlist[activeIdx + 1]);
+    } else if (playlist.length > 0) {
+      playTrack(playlist[0]);
+    }
+  };
+
+  const handlePrevTrack = () => {
+    const activeIdx = playlist.findIndex(s => s.active);
+    if (activeIdx > 0) {
+      playTrack(playlist[activeIdx - 1]);
+    } else if (playlist.length > 0) {
+      playTrack(playlist[playlist.length - 1]);
+    }
+  };
+
+  const handleAudioAdded = (newTrack) => {
+    setPlaylist(prev => {
+      const nextPlaylist = prev.map(t => ({ ...t, active: false }));
+      return [...nextPlaylist, { ...newTrack, active: true, artist: profile.realName }];
+    });
+  };
+
   const handleAudioChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setAudioSource(URL.createObjectURL(file));
-      setSongTitle(file.name.replace(/\.[^/.]+$/, ""));
-      setIsPlaying(false);
+      const sourceUrl = URL.createObjectURL(file);
+      const title = file.name.replace(/\.[^/.]+$/, "");
+
+      const audioObj = new Audio(sourceUrl);
+      audioObj.onloadedmetadata = () => {
+        const minutes = Math.floor(audioObj.duration / 60);
+        const seconds = Math.floor(audioObj.duration % 60);
+        const durationStr = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+        jsmediatags.read(file, {
+          onSuccess: function (tag) {
+            let extractedCover = null;
+            const picture = tag.tags?.picture;
+            if (picture) {
+              let base64String = "";
+              for (let i = 0; i < picture.data.length; i++) {
+                base64String += String.fromCharCode(picture.data[i]);
+              }
+              extractedCover = "data:" + picture.format + ";base64," + window.btoa(base64String);
+            }
+
+            const newTrack = { id: Date.now(), title, source: sourceUrl, cover: extractedCover, duration: durationStr };
+            handleAudioAdded(newTrack);
+            playTrack(newTrack);
+          },
+          onError: function (error) {
+            console.log('Error reading metadata:', error.info);
+            const newTrack = { id: Date.now(), title, source: sourceUrl, cover: null, duration: durationStr };
+            handleAudioAdded(newTrack);
+            playTrack(newTrack);
+          }
+        });
+      };
+
       localforage.setItem('playground_audio_blob', file).catch(err => {
         console.error("Failed to save audio to IndexedDB:", err);
       });
@@ -125,7 +226,13 @@ function App() {
       <input type="file" accept="audio/*" className="hidden" ref={audioInputRef} onChange={handleAudioChange} />
       <input type="file" accept="image/*" className="hidden" ref={profilePicInputRef} onChange={handleProfilePicChange} />
 
-      <audio ref={audioRef} src={audioSource} onTimeUpdate={onTimeUpdate} onEnded={() => setIsPlaying(false)} />
+      <audio
+        ref={audioRef}
+        src={audioSource}
+        onTimeUpdate={onTimeUpdate}
+        onLoadedMetadata={onLoadedMetadata}
+        onEnded={handleNextTrack}
+      />
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -162,10 +269,12 @@ function App() {
               {activeTab === 'gallery' && <GalleryContent icons={sharedIcons} />}
               {activeTab === 'playlist' && (
                 <PlaylistContent
-                  songTitle={songTitle}
-                  profile={profile}
-                  heroImage={heroImage}
+                  heroImage={audioCover || heroImage}
                   icons={sharedIcons}
+                  onUploadAudio={() => audioInputRef.current.click()}
+                  playlist={playlist}
+                  setPlaylist={setPlaylist}
+                  onPlay={(song) => playTrack(song)}
                 />
               )}
             </AnimatePresence>
@@ -194,7 +303,12 @@ function App() {
             isPlaying={isPlaying}
             togglePlay={togglePlay}
             progress={progress}
-            heroImage={heroImage}
+            currentTime={currentTime}
+            duration={duration}
+            onSeek={handleSeek}
+            onNext={handleNextTrack}
+            onPrev={handlePrevTrack}
+            heroImage={audioCover || heroImage}
             icons={sharedIcons}
           />
 
