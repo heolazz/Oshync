@@ -32,17 +32,17 @@ function App() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   const [profile, setProfile] = useState({
-    firstName: "JAZZLYN",
-    lastName: "TRISHA",
-    realName: "Jazzlyn Agatha Trisha",
-    birthDay: "16",
-    birthMonth: "February",
-    birthYear: "2011",
-    hometown: "Jakarta, Indonesia",
-    yearsActiveStart: "2023",
+    firstName: "YOUR",
+    lastName: "NAME",
+    realName: "Your Full Identity",
+    birthDay: "01",
+    birthMonth: "January",
+    birthYear: "2000",
+    hometown: "Your City, Country",
+    yearsActiveStart: "20XX",
     yearsActiveEnd: "Present",
-    tags: ["Singer", "Idol", "J-Pop"],
-    profilePic: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=100"
+    tags: ["Creative", "Designer", "Explorer"],
+    profilePic: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100"
   });
 
   const [heroImage, setHeroImage] = useState("https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=1200");
@@ -219,7 +219,7 @@ function App() {
   };
 
   return (
-    <div className="w-screen h-screen flex items-center justify-center bg-cover bg-center p-4 selection:bg-pink/30 overflow-hidden font-outfit" style={{ backgroundImage: `url(${heroImage})` }}>
+    <div className="w-screen h-screen flex items-center justify-center bg-cover bg-center p-4 selection:bg-pink/30 overflow-hidden font-quicksand" style={{ backgroundImage: `url(${heroImage})` }}>
       <div className="absolute inset-0 bg-white/20 backdrop-blur-2xl"></div>
 
       <input type="file" accept="image/*" className="hidden" ref={imageInputRef} onChange={handleImageChange} />
@@ -284,7 +284,7 @@ function App() {
         <aside className="p-6 flex flex-col gap-5 overflow-y-auto no-scrollbar">
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-widest pl-1">Hometown</h3>
+              <h3 className="text-[11px] font-extrabold text-slate-800 uppercase tracking-widest pl-1 font-syne">Hometown</h3>
               <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
                 <MapPin size={12} className="text-slate-400" /> {profile.hometown}
               </div>
@@ -292,7 +292,7 @@ function App() {
 
             <div className="flex flex-wrap gap-2 pr-2">
               {profile.tags.map((tag, idx) => (
-                <span key={idx} className="text-[9px] font-black px-3.5 py-1 bg-slate-100 rounded-full text-slate-600 border border-slate-200 whitespace-nowrap shadow-sm">
+                <span key={idx} className="text-[9px] font-bold px-3.5 py-1 bg-slate-100 rounded-full text-slate-600 border border-slate-200 whitespace-nowrap shadow-sm">
                   {tag}
                 </span>
               ))}
@@ -312,22 +312,22 @@ function App() {
             icons={sharedIcons}
           />
 
-          <div className="flex flex-col gap-2">
-            <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1">Years Active</span>
-            <div className="bg-white flex items-center justify-between p-3.5 px-6 rounded-[28px] border border-slate-100 shadow-sm">
+          <div className="flex flex-col gap-2 group/years">
+            <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest pl-1 font-syne">Years Active</span>
+            <div className="bg-slate-50 flex items-center justify-between p-3 px-5 rounded-[24px] transition-colors group-hover/years:bg-slate-100/80">
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-black text-slate-800 tracking-tighter">{profile.yearsActiveStart}</span>
-                <span className="text-slate-300 font-bold text-sm">- {profile.yearsActiveEnd}</span>
+                <span className="text-2xl font-extrabold text-slate-800 tracking-tighter font-syne">{profile.yearsActiveStart}</span>
+                <span className="text-slate-400 font-bold text-sm">- {profile.yearsActiveEnd}</span>
               </div>
-              <div className="w-10 h-10 bg-pink text-white rounded-2xl flex items-center justify-center shadow-lg shadow-pink/20">
-                <Clock size={20} />
+              <div className="w-9 h-9 bg-[#ec4899] text-white rounded-xl flex items-center justify-center transition-transform group-hover/years:scale-110">
+                <Clock size={18} />
               </div>
             </div>
           </div>
 
           <div className="flex flex-col gap-3 mt-auto mb-2">
             <div className="flex items-center justify-between pl-1">
-              <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Media</h3>
+              <h3 className="text-[11px] font-extrabold text-slate-800 uppercase tracking-widest font-syne">Media</h3>
               <div className="flex gap-2">
                 <SkipBack size={12} className="text-slate-300 cursor-pointer hover:text-slate-500" />
                 <SkipForward size={12} className="text-slate-800 cursor-pointer hover:text-slate-500" />
