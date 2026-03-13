@@ -1,37 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageCircle, Send, Bookmark, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, MessageCircle, Send, Bookmark, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 
-const GALLERY_ITEMS = [
-    { id: 1, c: "col-span-2 row-span-2", img: "https://loremflickr.com/800/800/cat?random=1" },
-    { id: 2, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=2" },
-    { id: 3, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=3" },
-    { id: 4, c: "col-span-2 row-span-1", img: "https://loremflickr.com/800/400/cat?random=4" },
-    { id: 5, c: "col-span-1 row-span-2", img: "https://loremflickr.com/400/800/cat?random=5" },
-    { id: 6, c: "col-span-2 row-span-1", img: "https://loremflickr.com/800/400/cat?random=6" },
-    { id: 7, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=7" },
-    { id: 8, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=8" },
-    { id: 9, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=9" },
-    { id: 10, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=10" },
+const BENTO_PATTERNS = [
+    "col-span-2 row-span-2",
+    "col-span-1 row-span-1",
+    "col-span-1 row-span-1",
+    "col-span-2 row-span-1",
+    "col-span-1 row-span-2",
+    "col-span-2 row-span-1",
+    "col-span-1 row-span-1",
+    "col-span-1 row-span-1",
+    "col-span-1 row-span-1",
+    "col-span-1 row-span-1"
 ];
 
-const GalleryContent = ({ icons }) => {
+const GalleryContent = ({ icons, gallery = [], setGallery, onReset }) => {
     const { ImageIcon, Eye, Upload, X } = icons;
     const [activeIndex, setActiveIndex] = useState(null);
     const [isLiked, setIsLiked] = useState(false);
     const [direction, setDirection] = useState(0);
+    const fileInputRef = useRef(null);
 
     const handleNext = (e) => {
         if (e) e.stopPropagation();
+        if (gallery.length === 0) return;
         setDirection(1);
-        setActiveIndex((prev) => (prev + 1) % GALLERY_ITEMS.length);
+        setActiveIndex((prev) => (prev + 1) % gallery.length);
         setIsLiked(false);
     };
 
     const handlePrev = (e) => {
         if (e) e.stopPropagation();
+        if (gallery.length === 0) return;
         setDirection(-1);
-        setActiveIndex((prev) => (prev - 1 + GALLERY_ITEMS.length) % GALLERY_ITEMS.length);
+        setActiveIndex((prev) => (prev - 1 + gallery.length) % gallery.length);
         setIsLiked(false);
     };
 
@@ -45,9 +48,53 @@ const GalleryContent = ({ icons }) => {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [activeIndex]);
+    }, [activeIndex, gallery.length]);
 
-    const activeItem = activeIndex !== null ? GALLERY_ITEMS[activeIndex] : null;
+    const handleUploadClick = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleFileChange = async (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+
+        const newItems = await Promise.all(
+            files.map(file => {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        resolve({
+                            id: Date.now() + Math.random(),
+                            img: reader.result
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                });
+            })
+        );
+
+        setGallery(prev => [...newItems, ...prev]);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    const handleDeletePhoto = (id, e) => {
+        e.stopPropagation();
+        setGallery(prev => prev.filter(item => item.id !== id));
+        if (activeIndex !== null) {
+            setActiveIndex(null); // Close modal when deleted
+        }
+    };
+
+    const handleClearAll = () => {
+        setGallery([]);
+        setActiveIndex(null);
+    };
+
+    const activeItem = activeIndex !== null && activeIndex < gallery.length ? gallery[activeIndex] : null;
 
     return (
         <motion.div
@@ -57,30 +104,81 @@ const GalleryContent = ({ icons }) => {
             exit={{ opacity: 0, y: -20 }}
             className="absolute inset-0 w-full h-full bg-white p-6 overflow-y-auto no-scrollbar pointer-events-auto font-quicksand"
         >
-            <h2 className="text-2xl font-extrabold text-slate-800 mb-6 flex items-center gap-3 font-syne"><ImageIcon className="text-pink" /> Photo Gallery</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[140px] gap-4">
-                {GALLERY_ITEMS.map((item, index) => (
-                    <div
-                        key={item.id}
-                        className={`relative group/item rounded-3xl overflow-hidden shadow-sm border border-slate-100 cursor-pointer ${item.c}`}
-                        onClick={() => {
-                            setActiveIndex(index);
-                            setIsLiked(false);
-                        }}
+            <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+            />
+
+            <div className="flex items-center justify-between mb-6 pb-6 border-b border-slate-100">
+                <h2 className="text-2xl font-extrabold text-slate-800 flex items-center gap-3 font-syne">
+                    <ImageIcon className="text-pink" /> Photo Gallery
+                </h2>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={onReset}
+                        className="text-xs font-extrabold text-slate-400 hover:text-slate-700 px-4 py-2 rounded-full hover:bg-slate-100 transition-all uppercase tracking-widest border border-slate-100"
                     >
-                        <img
-                            src={item.img}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover/item:scale-105"
-                            alt={`Gallery item ${item.id}`}
-                        />
-                        <div className="absolute inset-0 bg-slate-900/0 group-hover/item:bg-slate-900/20 transition-colors flex items-center justify-center">
-                            <Eye size={24} className="text-white opacity-0 group-hover/item:opacity-100 transition-opacity drop-shadow-md" />
-                        </div>
-                    </div>
-                ))}
+                        Reset
+                    </button>
+                    <button
+                        onClick={handleClearAll}
+                        className="text-xs font-extrabold text-slate-400 hover:text-red-500 px-4 py-2 rounded-full hover:bg-red-50 transition-all uppercase tracking-widest border border-slate-100"
+                    >
+                        Clear All
+                    </button>
+                </div>
             </div>
+
+            {gallery.length === 0 ? (
+                <div className="flex flex-col items-center justify-center text-slate-400 py-12">
+                    <ImageIcon size={48} className="mb-4 opacity-50" />
+                    <p>Your gallery is empty.</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[140px] gap-4 grid-flow-row-dense">
+                    <AnimatePresence>
+                        {gallery.map((item, index) => (
+                            <motion.div
+                                layout
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                key={item.id}
+                                className={`relative group/item rounded-3xl overflow-hidden shadow-sm border border-slate-100 cursor-pointer ${BENTO_PATTERNS[index % BENTO_PATTERNS.length]}`}
+                                onClick={() => {
+                                    setActiveIndex(index);
+                                    setIsLiked(false);
+                                }}
+                            >
+                                <img
+                                    src={item.img}
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover/item:scale-105"
+                                    alt={`Gallery item ${item.id}`}
+                                />
+                                <div className="absolute inset-0 bg-slate-900/0 group-hover/item:bg-slate-900/30 transition-colors flex items-center justify-center gap-4">
+                                    <Eye size={24} className="text-white opacity-0 group-hover/item:opacity-100 transition-opacity drop-shadow-md hover:scale-110" />
+                                </div>
+                                <button
+                                    onClick={(e) => handleDeletePhoto(item.id, e)}
+                                    className="absolute top-3 right-3 bg-white/20 hover:bg-red-500 text-white p-2 rounded-full backdrop-blur-md opacity-0 group-hover/item:opacity-100 transition-all z-10"
+                                >
+                                    <Trash2 size={14} />
+                                </button>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                </div>
+            )}
+
             <div className="mt-8 flex justify-center pb-4">
-                <button className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs py-3 px-8 rounded-full transition-colors flex items-center gap-2">
+                <button
+                    onClick={handleUploadClick}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs py-3 px-8 rounded-full transition-colors flex items-center gap-2"
+                >
                     <Upload size={14} /> Add New Photos
                 </button>
             </div>
