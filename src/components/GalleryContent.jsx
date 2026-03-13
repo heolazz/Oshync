@@ -1,11 +1,53 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageCircle, Send, Bookmark } from 'lucide-react';
+import { Heart, MessageCircle, Send, Bookmark, ChevronLeft, ChevronRight } from 'lucide-react';
+
+const GALLERY_ITEMS = [
+    { id: 1, c: "col-span-2 row-span-2", img: "https://loremflickr.com/800/800/cat?random=1" },
+    { id: 2, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=2" },
+    { id: 3, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=3" },
+    { id: 4, c: "col-span-2 row-span-1", img: "https://loremflickr.com/800/400/cat?random=4" },
+    { id: 5, c: "col-span-1 row-span-2", img: "https://loremflickr.com/400/800/cat?random=5" },
+    { id: 6, c: "col-span-2 row-span-1", img: "https://loremflickr.com/800/400/cat?random=6" },
+    { id: 7, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=7" },
+    { id: 8, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=8" },
+    { id: 9, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=9" },
+    { id: 10, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=10" },
+];
 
 const GalleryContent = ({ icons }) => {
     const { ImageIcon, Eye, Upload, X } = icons;
-    const [selectedImage, setSelectedImage] = useState(null);
+    const [activeIndex, setActiveIndex] = useState(null);
     const [isLiked, setIsLiked] = useState(false);
+    const [direction, setDirection] = useState(0);
+
+    const handleNext = (e) => {
+        if (e) e.stopPropagation();
+        setDirection(1);
+        setActiveIndex((prev) => (prev + 1) % GALLERY_ITEMS.length);
+        setIsLiked(false);
+    };
+
+    const handlePrev = (e) => {
+        if (e) e.stopPropagation();
+        setDirection(-1);
+        setActiveIndex((prev) => (prev - 1 + GALLERY_ITEMS.length) % GALLERY_ITEMS.length);
+        setIsLiked(false);
+    };
+
+    // Keyboard support
+    React.useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (activeIndex === null) return;
+            if (e.key === 'ArrowRight') handleNext();
+            if (e.key === 'ArrowLeft') handlePrev();
+            if (e.key === 'Escape') setActiveIndex(null);
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [activeIndex]);
+
+    const activeItem = activeIndex !== null ? GALLERY_ITEMS[activeIndex] : null;
 
     return (
         <motion.div
@@ -17,23 +59,12 @@ const GalleryContent = ({ icons }) => {
         >
             <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3"><ImageIcon className="text-pink" /> Photo Gallery</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[140px] gap-4">
-                {[
-                    { id: 1, c: "col-span-2 row-span-2", img: "https://loremflickr.com/800/800/cat?random=1" },
-                    { id: 2, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=2" },
-                    { id: 3, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=3" },
-                    { id: 4, c: "col-span-2 row-span-1", img: "https://loremflickr.com/800/400/cat?random=4" },
-                    { id: 5, c: "col-span-1 row-span-2", img: "https://loremflickr.com/400/800/cat?random=5" },
-                    { id: 6, c: "col-span-2 row-span-1", img: "https://loremflickr.com/800/400/cat?random=6" },
-                    { id: 7, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=7" },
-                    { id: 8, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=8" },
-                    { id: 9, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=9" },
-                    { id: 10, c: "col-span-1 row-span-1", img: "https://loremflickr.com/400/400/cat?random=10" },
-                ].map((item) => (
+                {GALLERY_ITEMS.map((item, index) => (
                     <div
                         key={item.id}
                         className={`relative group/item rounded-3xl overflow-hidden shadow-sm border border-slate-100 cursor-pointer ${item.c}`}
                         onClick={() => {
-                            setSelectedImage(item.img);
+                            setActiveIndex(index);
                             setIsLiked(false);
                         }}
                     >
@@ -54,15 +85,30 @@ const GalleryContent = ({ icons }) => {
                 </button>
             </div>
 
-            <AnimatePresence>
-                {selectedImage && (
+            <AnimatePresence initial={false}>
+                {activeItem && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 p-4 backdrop-blur-sm"
-                        onClick={() => setSelectedImage(null)}
+                        onClick={() => setActiveIndex(null)}
                     >
+                        {/* Navigation Buttons */}
+                        <button
+                            onClick={handlePrev}
+                            className="absolute left-4 md:left-8 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all backdrop-blur-md border border-white/10 active:scale-95"
+                        >
+                            <ChevronLeft size={28} />
+                        </button>
+
+                        <button
+                            onClick={handleNext}
+                            className="absolute right-4 md:right-8 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all backdrop-blur-md border border-white/10 active:scale-95"
+                        >
+                            <ChevronRight size={28} />
+                        </button>
+
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0, rotate: -2 }}
                             animate={{ scale: 1, opacity: 1, rotate: 0 }}
@@ -80,18 +126,57 @@ const GalleryContent = ({ icons }) => {
                                     </div>
                                     <span className="font-semibold text-sm text-slate-800">cat_lover_99</span>
                                 </div>
-                                <button onClick={() => setSelectedImage(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                                <button onClick={() => setActiveIndex(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
                                     {X ? <X size={20} /> : <span className="text-xl font-bold leading-none">&times;</span>}
                                 </button>
                             </div>
 
-                            {/* Image content */}
-                            <div className="w-full bg-slate-50 relative flex items-center justify-center border-y border-slate-100 max-h-[60vh]">
-                                <img
-                                    src={selectedImage}
-                                    alt="Highlighted"
-                                    className="w-full h-auto max-h-[60vh] object-contain"
-                                />
+                            {/* Image content with slide animation */}
+                            <div className="w-full bg-slate-50 relative flex items-center justify-center border-y border-slate-100 h-[50vh] md:h-[60vh] overflow-hidden select-none">
+                                <AnimatePresence initial={false} custom={direction} mode="popLayout">
+                                    <motion.img
+                                        key={activeItem.id}
+                                        custom={direction}
+                                        variants={{
+                                            enter: (d) => ({
+                                                x: d > 0 ? '100%' : '-100%',
+                                                opacity: 0,
+                                                scale: 0.95
+                                            }),
+                                            center: {
+                                                x: 0,
+                                                opacity: 1,
+                                                scale: 1,
+                                                zIndex: 1
+                                            },
+                                            exit: (d) => ({
+                                                x: d < 0 ? '100%' : '-100%',
+                                                opacity: 0,
+                                                scale: 0.95,
+                                                zIndex: 0
+                                            })
+                                        }}
+                                        initial="enter"
+                                        animate="center"
+                                        exit="exit"
+                                        transition={{
+                                            x: { type: "spring", stiffness: 300, damping: 35 },
+                                            opacity: { duration: 0.4 },
+                                            scale: { duration: 0.4 }
+                                        }}
+                                        drag="x"
+                                        dragConstraints={{ left: 0, right: 0 }}
+                                        dragElastic={1}
+                                        onDragEnd={(e, { offset, velocity }) => {
+                                            const swipe = Math.abs(offset.x) > 50 || Math.abs(velocity.x) > 500;
+                                            if (swipe && offset.x > 0) handlePrev();
+                                            else if (swipe && offset.x < 0) handleNext();
+                                        }}
+                                        src={activeItem.img}
+                                        alt="Highlighted"
+                                        className="absolute w-full h-full object-contain cursor-grab active:cursor-grabbing"
+                                    />
+                                </AnimatePresence>
                             </div>
 
                             {/* Instagram-like footer actions */}
