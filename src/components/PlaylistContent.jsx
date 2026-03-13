@@ -1,18 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Trash } from 'lucide-react';
 
 const PlaylistContent = ({ heroImage, icons, onUploadAudio, playlist, setPlaylist, onPlay }) => {
     const { ListMusic, Play, MoreVertical, Upload } = icons;
+    const [openMenuId, setOpenMenuId] = useState(null);
 
     const handleDelete = (id, e) => {
-        e.stopPropagation();
+        if (e) e.stopPropagation();
         setPlaylist(prev => prev.filter(song => song.id !== id));
+        setOpenMenuId(null);
     };
 
     const handleClearAll = () => {
         setPlaylist([]);
     };
+
+    const toggleMenu = (id, e) => {
+        e.stopPropagation();
+        setOpenMenuId(openMenuId === id ? null : id);
+    };
+
+    // Close menu on click outside
+    React.useEffect(() => {
+        const closeMenu = () => setOpenMenuId(null);
+        window.addEventListener('click', closeMenu);
+        return () => window.removeEventListener('click', closeMenu);
+    }, []);
 
     return (
         <motion.div
@@ -20,20 +34,16 @@ const PlaylistContent = ({ heroImage, icons, onUploadAudio, playlist, setPlaylis
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="absolute inset-0 w-full h-full bg-white p-8 overflow-y-auto no-scrollbar pointer-events-auto flex flex-col"
+            className="absolute inset-0 w-full h-full bg-white p-8 overflow-y-auto no-scrollbar pointer-events-auto flex flex-col font-quicksand"
         >
             <div className="flex items-center justify-between mb-8 pb-6 border-b border-slate-100">
-                <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3"><ListMusic className="text-pink" /> Local Playlist</h2>
+                <h2 className="text-2xl font-extrabold text-slate-800 flex items-center gap-3 font-syne"><ListMusic className="text-pink" /> Local Playlist</h2>
                 <div className="flex items-center gap-3">
                     <button
                         onClick={handleClearAll}
-                        className="text-slate-400 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-colors"
-                        title="Clear Playlist"
+                        className="text-xs font-extrabold text-slate-400 hover:text-red-500 px-4 py-2 rounded-full hover:bg-red-50 transition-all uppercase tracking-widest border border-slate-100"
                     >
-                        <Trash size={18} />
-                    </button>
-                    <button className="bg-pink text-white p-3 rounded-full hover:bg-pink/90 transition-colors shadow-md shadow-pink/30">
-                        <Play size={18} fill="currentColor" className="ml-0.5" />
+                        Clear All
                     </button>
                 </div>
             </div>
@@ -59,7 +69,7 @@ const PlaylistContent = ({ heroImage, icons, onUploadAudio, playlist, setPlaylis
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
                                 onClick={() => onPlay(song)}
-                                className={`flex items-center gap-4 p-4 rounded-2xl transition-colors cursor-pointer group ${song.active ? 'bg-pink/5 border border-pink/20' : 'hover:bg-slate-50 border border-transparent'}`}
+                                className={`flex items-center gap-4 p-4 rounded-2xl transition-colors cursor-pointer group relative ${song.active ? 'bg-pink/5 border border-pink/20' : 'hover:bg-slate-50 border border-transparent'}`}
                             >
                                 <div className="text-sm font-bold text-slate-400 w-6 text-center">{song.active ? <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 1 }} className="w-2 h-2 bg-pink rounded-full mx-auto" /> : idx + 1}</div>
                                 <div className="w-10 h-10 rounded-lg bg-slate-200 overflow-hidden shadow-sm">
@@ -71,17 +81,33 @@ const PlaylistContent = ({ heroImage, icons, onUploadAudio, playlist, setPlaylis
                                 </div>
                                 <span className="text-xs font-bold text-slate-400 mr-2">{song.duration}</span>
 
-                                {/* Hover actions */}
-                                <div className="hidden sm:flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                {/* More menu */}
+                                <div className="relative">
                                     <button
-                                        onClick={(e) => handleDelete(song.id, e)}
-                                        className="text-slate-300 hover:text-red-500 p-1.5 rounded-full hover:bg-slate-100 transition-colors"
+                                        onClick={(e) => toggleMenu(song.id, e)}
+                                        className="text-slate-300 hover:text-slate-700 p-1.5 rounded-full hover:bg-white/50 transition-colors"
                                     >
-                                        <Trash2 size={16} />
+                                        <MoreVertical size={18} />
                                     </button>
-                                    <button onClick={(e) => e.stopPropagation()} className="text-slate-300 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
-                                        <MoreVertical size={16} />
-                                    </button>
+
+                                    <AnimatePresence>
+                                        {openMenuId === song.id && (
+                                            <motion.div
+                                                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                                className="absolute right-0 top-full mt-2 w-32 bg-white rounded-xl shadow-xl border border-slate-100 z-30 overflow-hidden"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <button
+                                                    onClick={(e) => handleDelete(song.id, e)}
+                                                    className="w-full flex items-center gap-2 px-4 py-3 text-xs font-bold text-red-500 hover:bg-red-50 transition-colors"
+                                                >
+                                                    <Trash2 size={14} /> Remove
+                                                </button>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             </motion.div>
                         ))
