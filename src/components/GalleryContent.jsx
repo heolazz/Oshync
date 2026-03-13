@@ -55,9 +55,9 @@ const GalleryContent = ({ icons }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="absolute inset-0 w-full h-full bg-white p-6 overflow-y-auto no-scrollbar pointer-events-auto"
+            className="absolute inset-0 w-full h-full bg-white p-6 overflow-y-auto no-scrollbar pointer-events-auto font-quicksand"
         >
-            <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3"><ImageIcon className="text-pink" /> Photo Gallery</h2>
+            <h2 className="text-2xl font-extrabold text-slate-800 mb-6 flex items-center gap-3 font-syne"><ImageIcon className="text-pink" /> Photo Gallery</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[140px] gap-4">
                 {GALLERY_ITEMS.map((item, index) => (
                     <div
