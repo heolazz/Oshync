@@ -15,7 +15,7 @@ const BENTO_PATTERNS = [
     "col-span-1 row-span-1"
 ];
 
-const GalleryContent = ({ icons, gallery = [], setGallery, onReset }) => {
+const GalleryContent = ({ icons, gallery = [], setGallery, onReset, profile }) => {
     const { ImageIcon, Eye, Upload, X } = icons;
     const [activeIndex, setActiveIndex] = useState(null);
     const [isLiked, setIsLiked] = useState(false);
@@ -217,20 +217,22 @@ const GalleryContent = ({ icons, gallery = [], setGallery, onReset }) => {
                             {/* Instagram-like header */}
                             <div className="flex items-center justify-between p-4 border-b border-slate-100">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-400 to-fuchsia-600 p-[2px]">
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#ec4899] to-[#f472b6] p-[2px]">
                                         <div className="w-full h-full rounded-full border-2 border-white overflow-hidden">
-                                            <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Profile" className="w-full h-full object-cover" />
+                                            <img src={profile.profilePic} alt="Profile" className="w-full h-full object-cover" />
                                         </div>
                                     </div>
-                                    <span className="font-semibold text-sm text-slate-800">cat_lover_99</span>
+                                    <span className="font-extrabold text-xs text-slate-800 uppercase tracking-tighter">
+                                        {profile.firstName.toLowerCase()}_{profile.lastName.toLowerCase()}
+                                    </span>
                                 </div>
                                 <button onClick={() => setActiveIndex(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
-                                    {X ? <X size={20} /> : <span className="text-xl font-bold leading-none">&times;</span>}
+                                    <X size={20} />
                                 </button>
                             </div>
 
                             {/* Image content with slide animation */}
-                            <div className="w-full bg-slate-50 relative flex items-center justify-center border-y border-slate-100 h-[50vh] md:h-[60vh] overflow-hidden select-none">
+                            <div className="w-full bg-slate-50 relative flex items-center justify-center border-y border-slate-100 h-[45vh] md:h-[60vh] overflow-hidden select-none">
                                 <AnimatePresence initial={false} custom={direction} mode="popLayout">
                                     <motion.img
                                         key={activeItem.id}
@@ -278,35 +280,35 @@ const GalleryContent = ({ icons, gallery = [], setGallery, onReset }) => {
                             </div>
 
                             {/* Instagram-like footer actions */}
-                            <div className="p-4">
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="flex items-center gap-4">
+                            <div className="p-5">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-5">
                                         <button
                                             onClick={() => setIsLiked(!isLiked)}
                                             className="transition-transform active:scale-95"
                                         >
-                                            <Heart size={24} className={`${isLiked ? 'fill-red-500 text-red-500' : 'text-slate-800 hover:text-slate-500 transition-colors'}`} />
+                                            <Heart size={24} className={`${isLiked ? 'fill-[#ec4899] text-[#ec4899]' : 'text-slate-800 hover:text-pink transition-colors'}`} />
                                         </button>
-                                        <button className="text-slate-800 hover:text-slate-500 transition-colors hover:scale-105 active:scale-95">
+                                        <button className="text-slate-800 hover:text-pink transition-colors hover:scale-105 active:scale-95">
                                             <MessageCircle size={24} />
                                         </button>
-                                        <button className="text-slate-800 hover:text-slate-500 transition-colors hover:scale-105 active:scale-95">
+                                        <button className="text-slate-800 hover:text-pink transition-colors hover:scale-105 active:scale-95">
                                             <Send size={24} />
                                         </button>
                                     </div>
-                                    <button className="text-slate-800 hover:text-slate-500 transition-colors hover:scale-105 active:scale-95">
+                                    <button className="text-slate-800 hover:text-pink transition-colors hover:scale-105 active:scale-95">
                                         <Bookmark size={24} />
                                     </button>
                                 </div>
 
-                                <p className="font-semibold text-sm text-slate-800 mb-1">{isLiked ? '1,338' : '1,337'} likes</p>
+                                <p className="font-black text-xs text-slate-800 mb-2 uppercase tracking-tighter">{isLiked ? '1,338' : '1,337'} likes</p>
 
-                                <p className="text-sm text-slate-800">
-                                    <span className="font-semibold mr-2">cat_lover_99</span>
-                                    Feeling cute today! 🐾✨ Can't wait for dinner time. #catsofinstagram #cute
+                                <p className="text-xs text-slate-800 leading-relaxed">
+                                    <span className="font-black mr-2 uppercase tracking-tighter">{profile.firstName.toLowerCase()}_{profile.lastName.toLowerCase()}</span>
+                                    Captured a beautiful moment. #vibe #lifestyle #retro
                                 </p>
 
-                                <p className="text-xs text-slate-400 mt-2 uppercase tracking-wide">2 HOURS AGO</p>
+                                <p className="text-[9px] font-bold text-slate-400 mt-3 uppercase tracking-widest">Just now</p>
                             </div>
                         </motion.div>
                     </motion.div>

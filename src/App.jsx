@@ -4,7 +4,7 @@ import jsmediatags from 'jsmediatags/dist/jsmediatags.min.js';
 import {
   Home, Star, Camera, Briefcase, BarChart2, Grid, Layers, MoreVertical,
   Heart, Bookmark, Play, SkipBack, SkipForward, MapPin, Info, ArrowLeft, Clock, Upload, Bell, Pause,
-  Image as ImageIcon, ListMusic, Disc, Eye, Edit3, X
+  Image as ImageIcon, ListMusic, Disc, Eye, Edit3, X, User
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -16,6 +16,7 @@ import HomeContent from './components/HomeContent';
 import GalleryContent from './components/GalleryContent';
 import PlaylistContent from './components/PlaylistContent';
 import ProfileEditor from './components/ProfileEditor';
+import MobileNav from './components/MobileNav';
 
 // Hooks
 import { useStorage } from './hooks/useStorage';
@@ -65,7 +66,7 @@ function App() {
   const [playlist, setPlaylist] = useState([
     { id: 1, title: "SoundHelix-Song-1", artist: profile.realName, duration: "6:12", source: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", active: true, cover: null },
     { id: 2, title: "SoundHelix-Song-2", artist: profile.realName, duration: "7:05", source: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", active: false, cover: null },
-    { id: 3, title: "SoundHelix-Song-3", artist: profile.realName, duration: "5:44", source: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", active: false, cover: null },
+    { id: 3, title: "SoundHelix-Song-3", artist: profile.realName, duration: "5:44", source: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp4", active: false, cover: null },
   ]);
   const [gallery, setGallery] = useState(INITIAL_GALLERY);
   const [stats, setStats] = useState({ likes: 1877, stars: 7523, bookmarks: 3644 });
@@ -222,7 +223,6 @@ function App() {
       });
     }
   };
-
   const incrementStat = (type) => {
     setStats(prev => ({ ...prev, [type]: prev[type] + 1 }));
   };
@@ -230,11 +230,35 @@ function App() {
   const sharedIcons = {
     Home, Star, Camera, Briefcase, BarChart2, Grid, Layers, MoreVertical,
     Heart, Bookmark, Play, SkipBack, SkipForward, MapPin, Info, ArrowLeft, Clock, Upload, Bell, Pause,
-    ImageIcon, ListMusic, Disc, Eye, Edit3, X
+    ImageIcon, ListMusic, Disc, Eye, Edit3, X, User
   };
 
+  // Local Mobile Player component for quick development
+  const MobilePlayer = () => (
+    <motion.div
+      initial={{ y: 100 }}
+      animate={{ y: 0 }}
+      className="md:hidden fixed bottom-[84px] left-0 right-0 bg-white/95 backdrop-blur-2xl px-5 py-3 border-t border-slate-100 flex items-center gap-4 z-30"
+    >
+      <div className="w-12 h-12 rounded-xl overflow-hidden shadow-sm flex-shrink-0">
+        <img src={audioCover || heroImage} className="w-full h-full object-cover" alt="" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-bold text-slate-800 truncate leading-tight uppercase font-syne tracking-tight">{songTitle}</p>
+        <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-tighter italic">Streaming Live</p>
+      </div>
+      <div className="flex items-center gap-2">
+        <button onClick={handlePrevTrack} className="p-2 text-slate-400 active:scale-95 transition-transform"><SkipBack size={18} fill="currentColor" /></button>
+        <button onClick={togglePlay} className="w-11 h-11 bg-slate-900 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform">
+          {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-0.5" />}
+        </button>
+        <button onClick={handleNextTrack} className="p-2 text-slate-400 active:scale-95 transition-transform"><SkipForward size={18} fill="currentColor" /></button>
+      </div>
+    </motion.div>
+  );
+
   return (
-    <div className="w-screen h-screen flex items-center justify-center bg-cover bg-center p-4 selection:bg-pink/30 overflow-hidden font-quicksand" style={{ backgroundImage: `url(${heroImage})` }}>
+    <div className="w-screen h-screen flex items-center justify-center bg-cover bg-center md:p-4 selection:bg-pink/30 overflow-hidden font-quicksand" style={{ backgroundImage: `url(${heroImage})` }}>
       <div className="absolute inset-0 bg-white/20 backdrop-blur-2xl"></div>
 
       <input type="file" accept="image/*" className="hidden" ref={imageInputRef} onChange={handleImageChange} />
@@ -252,22 +276,24 @@ function App() {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative w-full max-w-[1150px] h-[92vh] max-h-[740px] bg-white rounded-[64px] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.3)] grid grid-cols-[90px_1fr_310px] overflow-hidden p-2 border-4 border-white/50"
+        className="relative w-full md:max-w-[1150px] h-full md:h-[92vh] md:max-h-[740px] bg-white md:rounded-[64px] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.3)] flex flex-col md:grid md:grid-cols-[90px_1fr_310px] overflow-hidden p-0 md:p-2 border-0 md:border-4 border-white/50"
       >
-        <Sidebar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          isCameraActive={isCameraActive}
-          setIsCameraActive={setIsCameraActive}
-          profilePic={profile.profilePic}
-          onProfilePicClick={() => profilePicInputRef.current.click()}
-          icons={sharedIcons}
-        />
+        <div className="hidden md:flex">
+          <Sidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            isCameraActive={isCameraActive}
+            setIsCameraActive={setIsCameraActive}
+            profilePic={profile.profilePic}
+            onProfilePicClick={() => profilePicInputRef.current.click()}
+            icons={sharedIcons}
+          />
+        </div>
 
-        <main className="flex flex-col bg-slate-50/50 rounded-[48px] m-1 overflow-hidden border border-slate-100">
+        <main className="flex flex-col bg-slate-50/50 rounded-none md:rounded-[48px] md:m-1 overflow-hidden border-b md:border border-slate-100 h-full md:h-auto pb-[170px] md:pb-0">
           <MainHeader icons={sharedIcons} />
 
-          <div className="flex-1 relative mx-6 mb-6 rounded-[40px] overflow-hidden group shadow-2xl bg-slate-100/50">
+          <div className="flex-1 relative mx-4 md:mx-6 mb-0 md:mb-6 rounded-[32px] md:rounded-[40px] overflow-hidden group shadow-2xl bg-slate-100/50">
             <AnimatePresence mode="wait">
               {activeTab === 'home' && (
                 <HomeContent
@@ -287,6 +313,7 @@ function App() {
                   gallery={gallery}
                   setGallery={setGallery}
                   onReset={() => setGallery(INITIAL_GALLERY)}
+                  profile={profile}
                 />
               )}
               {activeTab === 'playlist' && (
@@ -303,7 +330,7 @@ function App() {
           </div>
         </main>
 
-        <aside className="p-6 flex flex-col gap-5 overflow-y-auto no-scrollbar">
+        <aside className="hidden lg:flex p-6 flex-col gap-5 overflow-y-auto no-scrollbar">
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <h3 className="text-[11px] font-extrabold text-slate-800 uppercase tracking-widest pl-1 font-syne">Hometown</h3>
@@ -362,6 +389,17 @@ function App() {
           </div>
         </aside>
       </motion.div>
+
+      <MobilePlayer />
+      <MobileNav
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        profilePic={profile.profilePic}
+        onProfilePicClick={() => setIsEditingProfile(true)}
+        icons={sharedIcons}
+        isCameraActive={isCameraActive}
+        setIsCameraActive={setIsCameraActive}
+      />
 
       <AnimatePresence>
         {isEditingProfile && (
